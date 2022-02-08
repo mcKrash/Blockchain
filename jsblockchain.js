@@ -28,7 +28,7 @@ class BlockChain {
     constructor() {
         //the first variable of the chain will be the genesis block & will be created manually 
         this.chain = [this.theGenesisBlock()];
-        this.difficulty = 5;
+        this.difficulty = 3;
     }
 
     theGenesisBlock() {
@@ -78,3 +78,5 @@ console.log("the second block creation")
 myBlockchain.addBlock(block2);
 
 console.log(JSON.stringify(myBlockchain, null, 4));
+
+console.log("Blockchain validation Is " + myBlockchain.checkBlockChainValidation())
