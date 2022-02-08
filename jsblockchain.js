@@ -76,3 +76,5 @@ console.log("the first block creation")
 myBlockchain.addBlock(block1);
 console.log("the second block creation")
 myBlockchain.addBlock(block2);
+
+console.log(JSON.stringify(myBlockchain, null, 4));
