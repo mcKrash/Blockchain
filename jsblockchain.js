@@ -1,10 +1,17 @@
 const SHA256 = require('crypto-js/sha256');
 
+class Transaction {
+    constructor(fromAddress, toAddress, amount) {
+        this.fromAddress = fromAddress;
+        this.toAddress = toAddress;
+        this.amount = amount;
+    }
+}
+
 class Block {
-    constructor(index, timestamps, data, previousHash = '') {
-        this.index = index;
+    constructor(timestamps, transactions, previousHash = '') {
         this.timestamps = timestamps;
-        this.data = data;
+        this.transactions = transactions;
         this.previousHash = previousHash;
         this.hash = this.calculateHash();
         this.nonce = 0;
@@ -12,7 +19,7 @@ class Block {
 
     calculateHash() {
         //we will be using SHA256 to cryptograghic function to genarate hash of the block 
-        return SHA256(this.index + this.timestamps + this.previousHash + JSON.stringify(this.data) + this.nonce).toString();
+        return SHA256(this.timestamps + this.previousHash + JSON.stringify(this.transactions) + this.nonce).toString();
     }
 
     mineNewBlock(difficulty) {
@@ -28,21 +35,47 @@ class BlockChain {
     constructor() {
         //the first variable of the chain will be the genesis block & will be created manually 
         this.chain = [this.theGenesisBlock()];
+        this.penddingTransactions = [];
         this.difficulty = 3;
+        this.miningReward = 10;
     }
 
     theGenesisBlock() {
-        return new Block(0, Date.now(), "This Is Genesis", "0");
+        return new Block(Date.now(), "This Is Genesis", "0");
     }
 
     getLatestBlock() {
         return this.chain[this.chain.length - 1];
     }
 
-    addBlock(newblock) {
-        newblock.previousHash = this.getLatestBlock().hash;
-        newblock.mineNewBlock(this.difficulty);
-        this.chain.push(newblock);
+    minePenddingTransactions(miningRewardAddress) {
+        let block = new Block(Date.now(), this.penddingTransactions, this.getLatestBlock().hash);
+        block.mineNewBlock(this.difficulty);
+        console.log("Block Mined Successfully");
+        this.chain.push(block);
+
+        this.penddingTransactions = [
+            new Transaction(null, miningRewardAddress, this.miningReward)
+        ];
+
+    }
+
+    creareTransaction(transaction) {
+        this.penddingTransactions.push(transaction);
+    }
+
+    getBalanceFromAddress(address) {
+        let balance = 0;
+        for (const block of this.chain) {
+            for (const trans of block.transactions) {
+                if (trans.fromAddress === address) {
+                    balance = balance - trans.amount
+                }
+                if (trans.toAddress === address) {
+                    balance = balance + trans.amount
+                }
+            }
+        }
     }
 
     checkBlockChainValidation() {
@@ -63,20 +96,23 @@ class BlockChain {
 
 }
 
-//creating new blocks
-let block1 = new Block(1, Date.now(), { myBalance: 100 });
-let block2 = new Block(2, Date.now(), { myBalance: 200 });
 
 
-//creating new blockchain 
-let myBlockchain = new BlockChain();
+let bittyCoin = new BlockChain()
 
-//adding blocks to the blockchain
-console.log("the first block creation")
-myBlockchain.addBlock(block1);
-console.log("the second block creation")
-myBlockchain.addBlock(block2);
+transaction1 = new Transaction("tom", "jhon", 100);
+bittyCoin.creareTransaction(transaction1);
 
-console.log(JSON.stringify(myBlockchain, null, 4));
+transaction2 = new Transaction("jhon", "tom", 200);
+bittyCoin.creareTransaction(transaction2);
 
-console.log("Blockchain validation Is " + myBlockchain.checkBlockChainValidation())
+console.log("miner just satrt mining");
+bittyCoin.minePenddingTransactions("donald");
+
+console.log("balance for tom is: " + bittyCoin.getBalanceFromAddress("tom"));
+console.log("balance for jhon is: " + bittyCoin.getBalanceFromAddress("jhon"));
+console.log("balance for miner donald is: " + bittyCoin.getBalanceFromAddress("donald"));
+
+console.log("miner just satrt mining again");
+bittyCoin.minePenddingTransactions("donald");
+console.log("balance for miner donald is: " + bittyCoin.getBalanceFromAddress("donald"));
